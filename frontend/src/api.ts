@@ -117,4 +117,16 @@ export const api = {
     const d = await r.json();
     tokens.set(d.access_token, d.refresh_token);
   },
+
+  // ── Social login (mock provider: the whole flow completes over fetch) ────
+  async socialLogin(provider: "google" | "github"): Promise<void> {
+    const start = await req(`/auth/oauth/${provider}/authorize`);
+    const { authorization_url } = await start.json();
+    // In mock mode the provider redirects straight through to our callback,
+    // which returns the token pair as JSON (fetch follows the redirects).
+    const r = await fetch(authorization_url);
+    if (!r.ok) throw new Error(`${provider} login failed`);
+    const d = await r.json();
+    tokens.set(d.access_token, d.refresh_token);
+  },
 };

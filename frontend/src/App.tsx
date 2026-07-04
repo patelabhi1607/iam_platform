@@ -114,6 +114,21 @@ export function App() {
               </div>
             )}
           </div>
+          <div className="panel">
+            <h2>Federated login (mock providers)</h2>
+            <div className="row" style={{ flexWrap: "wrap", gap: 10 }}>
+              <button className="secondary" onClick={async () => { await api.socialLogin("google"); await refresh(); }}>
+                Continue with Google
+              </button>
+              <button className="secondary" onClick={async () => { await api.socialLogin("github"); await refresh(); }}>
+                Continue with GitHub
+              </button>
+              <button className="secondary" onClick={() => { window.location.href = "http://localhost:8000/auth/saml/login"; }}>
+                SSO (SAML) — API
+              </button>
+            </div>
+            <p className="hint">Mock OAuth/SAML — no external accounts needed. Also try the OAuth2 provider + device flow via the API docs.</p>
+          </div>
           <PasswordlessLogin onAuthed={refresh} />
         </>
       ) : (
