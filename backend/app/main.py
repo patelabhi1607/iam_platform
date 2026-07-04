@@ -57,8 +57,12 @@ def create_app() -> FastAPI:
     from app.api.admin import router as admin
     from app.api.credentials import router as credentials
     from app.api.resources import router as resources
+    from app.api.mfa import router as mfa
+    from app.api.passwordless import router as passwordless
+    from app.api.webauthn import router as webauthn
 
-    for r in (health, auth, me, tenants, admin, credentials, resources):
+    for r in (health, auth, me, tenants, admin, credentials, resources,
+              mfa, passwordless, webauthn):
         app.include_router(r)
     return app
 

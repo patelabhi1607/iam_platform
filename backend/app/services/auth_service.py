@@ -38,6 +38,32 @@ async def register(db: AsyncSession, email: str, password: str, full_name: str |
     return user
 
 
+async def resolve_or_create_tenant(db: AsyncSession, user: User) -> int:
+    """
+    Return the user's first tenant, provisioning a personal one if they have none.
+    Passwordless sign-ups (OTP/magic link/passkey) arrive with no membership.
+    """
+    from app.db.models.rbac import Membership
+    from app.services import tenant_service
+
+    m = (
+        await db.execute(select(Membership).where(Membership.user_id == user.id).limit(1))
+    ).scalar_one_or_none()
+    if m:
+        return m.tenant_id
+    slug = f"user-{user.id}"
+    tenant = await tenant_service.create_tenant_with_roles(db, slug, f"{user.email}'s workspace")
+    await tenant_service.make_owner(db, user.id, tenant.id)
+    return tenant.id
+
+
+def create_mfa_challenge(user: User, tenant_id: int) -> str:
+    """Short-lived token proving the password step passed; exchanged for full tokens."""
+    settings = get_settings()
+    token, _, _ = create_jwt(str(user.id), "mfa", 300, claims={"tid": tenant_id})
+    return token
+
+
 async def verify_credentials(db: AsyncSession, email: str, password: str) -> User:
     user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if user is None:

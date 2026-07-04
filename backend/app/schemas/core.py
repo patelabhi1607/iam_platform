@@ -37,6 +37,50 @@ class MessageResponse(BaseModel):
     message: str
 
 
+# ── MFA / passwordless ────────────────────────────────────────────────────────
+
+class LoginChallenge(BaseModel):
+    """Returned by /auth/login when the account has MFA enabled."""
+    mfa_required: bool = True
+    mfa_token: str
+
+
+class MfaVerifyRequest(BaseModel):
+    mfa_token: str
+    code: str  # a TOTP code or a recovery code
+
+
+class MfaEnrollBeginResponse(BaseModel):
+    secret: str
+    otpauth_uri: str  # render as a QR for the authenticator app
+
+
+class MfaEnrollConfirmRequest(BaseModel):
+    code: str
+
+
+class RecoveryCodesResponse(BaseModel):
+    recovery_codes: list[str]  # shown once
+
+
+class OtpRequest(BaseModel):
+    email: EmailStr
+    channel: str = "email"  # "email" | "sms"
+
+
+class OtpVerifyRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
+class MagicRequest(BaseModel):
+    email: EmailStr
+
+
+class MagicConsumeRequest(BaseModel):
+    token: str
+
+
 # ── Identity ──────────────────────────────────────────────────────────────────
 
 class UserResponse(BaseModel):

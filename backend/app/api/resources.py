@@ -5,10 +5,20 @@ can log in as different roles and watch RBAC allow/deny per action. This is the
 """
 from fastapi import APIRouter, Depends
 
-from app.core.deps import CurrentPrincipal, require_permission
+from app.core.deps import CurrentPrincipal, require_permission, require_step_up
 from app.schemas.core import MessageResponse
 
 router = APIRouter(prefix="/documents", tags=["demo-resource"])
+
+
+@router.post(
+    "/danger/wipe-all",
+    response_model=MessageResponse,
+    dependencies=[Depends(require_permission("document:delete")), Depends(require_step_up())],
+)
+async def wipe_all_documents():
+    """Sensitive action — requires BOTH the delete permission AND recent step-up auth."""
+    return MessageResponse(message="All documents wiped (permission + step-up satisfied)")
 
 
 @router.get("", response_model=MessageResponse, dependencies=[Depends(require_permission("document:read"))])

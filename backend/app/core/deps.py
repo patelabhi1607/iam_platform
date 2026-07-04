@@ -161,6 +161,20 @@ def require_mfa():
     return guard
 
 
+def require_step_up():
+    """Guard for sensitive actions — needs a recent /auth/step-up re-verification."""
+
+    async def guard(principal: CurrentPrincipal) -> Principal:
+        if principal.user_id is None or not await get_redis().exists(f"stepup:{principal.user_id}"):
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                detail="Step-up authentication required (POST /auth/step-up)",
+            )
+        return principal
+
+    return guard
+
+
 async def get_access_token_claims_optional(request: Request) -> dict | None:
     """Best-effort decode of the access token (used by logout to blocklist it)."""
     auth = request.headers.get("Authorization", "")

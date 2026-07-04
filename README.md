@@ -4,7 +4,7 @@ Comprehensive identity & access management: **every authentication method** and
 **every authorization model**, built with FastAPI + PostgreSQL + Redis and a
 React + TypeScript frontend. Built in phases.
 
-## Phase 1 (done) — core authN + RBAC + multi-tenancy
+## Phase 1 ✅ — core authN + RBAC + multi-tenancy
 
 **Authentication methods** (all resolve to a unified `Principal`):
 - Email + password (Argon2, bcrypt fallback)
@@ -28,6 +28,6 @@ UI: http://localhost:8080 · API: http://localhost:8000/docs
 Demo users (all password `password123`): `owner@`, `admin@`, `member@`, `viewer@example.com`
 
 ## Roadmap
-- Phase 2: MFA/passwordless — TOTP, email/SMS OTP, magic links, recovery codes, WebAuthn/passkeys, step-up
+- Phase 2 ✅ — MFA/passwordless: TOTP authenticator, email/SMS OTP, magic links, recovery codes, WebAuthn/passkeys, step-up auth
 - Phase 3: Federated — OAuth2 social login (Google/GitHub), OAuth2 provider (auth code + PKCE, client credentials, device), SAML
 - Phase 4: Advanced authZ — ABAC + policy engine, ReBAC (Zanzibar), ACLs, row-level ownership

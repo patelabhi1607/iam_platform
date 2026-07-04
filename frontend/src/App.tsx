@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, tokens, type ActionResult, type WhoAmI } from "./api";
+import { MfaPanel } from "./components/MfaPanel";
+import { PasswordlessLogin } from "./components/PasswordlessLogin";
 
 const DEMO_USERS = [
   { email: "owner@example.com", role: "owner" },
@@ -38,17 +40,36 @@ export function App() {
     refresh();
   }, [refresh]);
 
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+
   async function login(email: string) {
     setError(null);
     setBusy(true);
     setResults({});
     try {
-      await api.login(email, "password123");
-      await refresh();
+      const res = await api.loginMaybeChallenge(email, "password123");
+      if (res.mfa) {
+        setMfaToken(res.token!); // account has 2FA — ask for a code
+      } else {
+        await refresh();
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Login failed");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function submitMfa() {
+    setError(null);
+    try {
+      await api.mfaVerifyChallenge(mfaToken!, mfaCode);
+      setMfaToken(null);
+      setMfaCode("");
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "MFA failed");
     }
   }
 
@@ -75,16 +96,26 @@ export function App() {
       {error && <div className="msg error">{error}</div>}
 
       {!who ? (
-        <div className="panel">
-          <h2>Log in as a demo role</h2>
-          <div className="row" style={{ flexWrap: "wrap", gap: 10 }}>
-            {DEMO_USERS.map((u) => (
-              <button key={u.email} disabled={busy} onClick={() => login(u.email)}>
-                {u.role}
-              </button>
-            ))}
+        <>
+          <div className="panel">
+            <h2>Log in as a demo role</h2>
+            <div className="row" style={{ flexWrap: "wrap", gap: 10 }}>
+              {DEMO_USERS.map((u) => (
+                <button key={u.email} disabled={busy} onClick={() => login(u.email)}>
+                  {u.role}
+                </button>
+              ))}
+            </div>
+            {mfaToken && (
+              <div style={{ marginTop: 16 }}>
+                <div className="msg ok">This account has 2FA — enter your authenticator or recovery code.</div>
+                <input placeholder="TOTP or recovery code" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} />
+                <button onClick={submitMfa}>Verify</button>
+              </div>
+            )}
           </div>
-        </div>
+          <PasswordlessLogin onAuthed={refresh} />
+        </>
       ) : (
         <>
           <div className="panel">
@@ -102,6 +133,8 @@ export function App() {
               <button className="danger" onClick={logout}>Log out</button>
             </div>
           </div>
+
+          <MfaPanel />
 
           <div className="panel">
             <h2>Try actions (RBAC enforced per endpoint)</h2>

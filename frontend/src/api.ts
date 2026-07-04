@@ -71,4 +71,50 @@ export const api = {
     }
     return { ok: r.ok, status: r.status, message };
   },
+
+  // ── MFA (TOTP) ──────────────────────────────────────────────────────────
+  async mfaBegin(): Promise<{ secret: string; otpauth_uri: string }> {
+    const r = await req("/mfa/enroll/begin", { method: "POST", auth: true });
+    if (!r.ok) throw new Error("Enroll failed");
+    return r.json();
+  },
+  async mfaConfirm(code: string): Promise<string[]> {
+    const r = await req("/mfa/enroll/confirm", { method: "POST", body: { code }, auth: true });
+    if (!r.ok) throw new Error((await r.json()).detail ?? "Invalid code");
+    return (await r.json()).recovery_codes;
+  },
+  async mfaDisable(): Promise<void> {
+    await req("/mfa/disable", { method: "POST", auth: true });
+  },
+
+  // ── Passwordless (email OTP) ───────────────────────────────────────────
+  async otpRequest(email: string): Promise<void> {
+    await req("/auth/otp/request", { method: "POST", body: { email, channel: "email" } });
+  },
+  async otpPeek(email: string): Promise<string> {
+    const r = await req(`/auth/dev/outbox?email=${encodeURIComponent(email)}&channel=email`);
+    return (await r.json()).message ?? "";
+  },
+  async otpVerify(email: string, code: string): Promise<void> {
+    const r = await req("/auth/otp/verify", { method: "POST", body: { email, code } });
+    if (!r.ok) throw new Error((await r.json()).detail ?? "Invalid code");
+    const d = await r.json();
+    tokens.set(d.access_token, d.refresh_token);
+  },
+
+  // ── MFA challenge (when password login returns mfa_required) ────────────
+  async loginMaybeChallenge(email: string, password: string): Promise<{ mfa: boolean; token?: string }> {
+    const r = await req("/auth/login", { method: "POST", body: { email, password } });
+    if (!r.ok) throw new Error((await r.json()).detail ?? "Login failed");
+    const d = await r.json();
+    if (d.mfa_required) return { mfa: true, token: d.mfa_token };
+    tokens.set(d.access_token, d.refresh_token);
+    return { mfa: false };
+  },
+  async mfaVerifyChallenge(mfa_token: string, code: string): Promise<void> {
+    const r = await req("/auth/mfa/verify", { method: "POST", body: { mfa_token, code } });
+    if (!r.ok) throw new Error((await r.json()).detail ?? "Invalid MFA code");
+    const d = await r.json();
+    tokens.set(d.access_token, d.refresh_token);
+  },
 };
