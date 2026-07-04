@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api, tokens, type ActionResult, type WhoAmI } from "./api";
 import { MfaPanel } from "./components/MfaPanel";
 import { PasswordlessLogin } from "./components/PasswordlessLogin";
+import { AuthzPlayground } from "./components/AuthzPlayground";
 
 const DEMO_USERS = [
   { email: "owner@example.com", role: "owner" },
@@ -148,6 +149,8 @@ export function App() {
               <button className="danger" onClick={logout}>Log out</button>
             </div>
           </div>
+
+          <AuthzPlayground />
 
           <MfaPanel />
 

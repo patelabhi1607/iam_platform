@@ -118,6 +118,21 @@ export const api = {
     tokens.set(d.access_token, d.refresh_token);
   },
 
+  // ── Advanced authorization (PDP) ────────────────────────────────────────
+  async createDoc(title: string, classification: string): Promise<{ id: number; title: string; classification: string }> {
+    const r = await req("/docs", { method: "POST", body: { title, classification }, auth: true });
+    if (!r.ok) throw new Error("Create failed");
+    return r.json();
+  },
+  async listDocs(): Promise<Array<{ id: number; title: string; classification: string; owner_id: number }>> {
+    const r = await req("/docs", { auth: true });
+    return r.ok ? r.json() : [];
+  },
+  async checkAccess(docId: number, action: string): Promise<{ allowed: boolean; reason: string; model: string; trace: string[] }> {
+    const r = await req(`/docs/${docId}/check`, { method: "POST", body: { action }, auth: true });
+    return r.json();
+  },
+
   // ── Social login (mock provider: the whole flow completes over fetch) ────
   async socialLogin(provider: "google" | "github"): Promise<void> {
     const start = await req(`/auth/oauth/${provider}/authorize`);

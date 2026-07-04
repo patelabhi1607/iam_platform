@@ -5,6 +5,7 @@ from app.db.models.rbac import Permission, Role, Membership, role_permissions
 from app.db.models.credential import ApiKey, PersonalAccessToken
 from app.db.models.mfa import RecoveryCode, WebAuthnCredential
 from app.db.models.oauth import OAuthClient, SocialIdentity
+from app.db.models.authz import AbacPolicy, AclEntry, Doc, RelationTuple
 from app.db.models.audit import AuditLog
 
 __all__ = [
@@ -21,5 +22,9 @@ __all__ = [
     "WebAuthnCredential",
     "OAuthClient",
     "SocialIdentity",
+    "AbacPolicy",
+    "AclEntry",
+    "Doc",
+    "RelationTuple",
     "AuditLog",
 ]

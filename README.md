@@ -30,4 +30,4 @@ Demo users (all password `password123`): `owner@`, `admin@`, `member@`, `viewer@
 ## Roadmap
 - Phase 2 ✅ — MFA/passwordless: TOTP authenticator, email/SMS OTP, magic links, recovery codes, WebAuthn/passkeys, step-up auth
 - Phase 3 ✅ — Federated: OAuth2 social login (Google/GitHub), OAuth2 provider (auth code + PKCE, client credentials, device flow), SAML SSO
-- Phase 4: Advanced authZ — ABAC + policy engine, ReBAC (Zanzibar), ACLs, row-level ownership
+- Phase 4 ✅ — Advanced authZ: ABAC + policy engine, ReBAC (Zanzibar), ACLs, row-level ownership, unified PDP
